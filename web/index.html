@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Records System</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--ok:#15803d;--okbg:#dcfce7;--err:#b91c1c;--errbg:#fee2e2;--hl:#fef9c3}
+@media (prefers-color-scheme:dark){:root{--bg:#0f172a;--card:#1e293b;--text:#e5e7eb;--muted:#94a3b8;--line:#334155;--accent:#60a5fa;--ok:#4ade80;--okbg:#14532d;--err:#f87171;--errbg:#7f1d1d;--hl:#713f12}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--accent);color:#fff;padding:18px 24px}
+header h1{margin:0;font-size:1.4rem}
+header p{margin:4px 0 0;opacity:.85;font-size:.9rem}
+main{max-width:1100px;margin:0 auto;padding:20px;display:grid;grid-template-columns:320px 1fr;gap:20px}
+@media(max-width:850px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:20px}
+.card h2{margin:0 0 12px;font-size:1.05rem}
+label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 3px}
+input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text);font:inherit}
+button{padding:8px 14px;border:0;border-radius:6px;background:var(--accent);color:#fff;font:inherit;cursor:pointer}
+button.alt{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button.danger{background:var(--err)}
+button.small{padding:4px 9px;font-size:.8rem}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.row>*{flex:1}
+#banner{display:none;padding:10px 14px;border-radius:8px;margin-bottom:16px;font-size:.92rem}
+#banner.ok{display:block;background:var(--okbg);color:var(--ok)}
+#banner.err{display:block;background:var(--errbg);color:var(--err)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase}
+tr.hl{background:var(--hl)}
+td.num{text-align:right}
+.wrap{overflow-x:auto}
+.sortbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:14px}
+.sortbar div{flex:1;min-width:130px}
+.sortbar label{margin-top:0}
+#found{margin-top:12px;font-size:.9rem;line-height:1.6}
+.badge{padding:2px 8px;border-radius:99px;font-size:.75rem;font-weight:700}
+.PASS{background:var(--okbg);color:var(--ok)}
+.FAIL{background:var(--errbg);color:var(--err)}
+.muted{color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>Employee Records System</h1>
+  <p>Front end provided - you write the Java backend.</p>
+</header>
+<main>
+  <section>
+    <div class="card">
+      <h2 id="formTitle">Add Employee</h2>
+      <label>Employee ID (EMP-NNN)</label><input id="f_id" placeholder="EMP-009">
+      <label>Name</label><input id="f_name" placeholder="Rosa Cruz">
+      <label>Department</label><input id="f_department" placeholder="IT">
+      <label>Position</label><input id="f_position" placeholder="Developer">
+      <label>Salary (0-1000000)</label><input id="f_salary" type="number" min="0" max="1000000" step="0.01" placeholder="45000">
+      <div class="row">
+        <button id="saveBtn" onclick="save()">Add Employee</button>
+        <button id="cancelBtn" class="alt" style="display:none" onclick="cancelEdit()">Cancel</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Search Employee (by ID)</h2>
+      <input id="s_id" placeholder="EMP-003">
+      <div class="row"><button onclick="search()">Search</button></div>
+      <div id="found"></div>
+    </div>
+    <div class="card">
+      <h2>Test tools</h2>
+      <div class="row">
+        <button class="alt small" onclick="tool('reset')">Load sample data</button>
+        <button class="alt small" onclick="tool('clear')">Clear all</button>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div id="banner"></div>
+    <div class="card">
+      <h2>Employees <span class="muted" id="count"></span></h2>
+      <div class="sortbar">
+        <div><label>Sort algorithm</label>
+          <select id="algo"><option value="1">Bubble Sort</option><option value="2">Insertion Sort</option>
+          <option value="3">Selection Sort</option><option value="4">Merge Sort</option><option value="5">Quick Sort</option></select></div>
+        <div><label>Sort by</label>
+          <select id="by"><option value="1">Employee ID</option><option value="2">Name</option><option value="3">Department</option><option value="4">Position</option><option value="5">Salary</option></select></div>
+        <button style="flex:0 0 auto" onclick="sortNow()">Sort (ascending)</button>
+      </div>
+      <div class="wrap"><table>
+        <thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Position</th><th class="num">Salary</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>Backend Auto-Check</h2>
+      <p class="muted">Runs your Java code on test data and shows PASS or FAIL for each task.</p>
+      <div class="row"><button style="flex:0 0 auto" onclick="runCheck()">Run Auto-Check</button><span id="summary" class="muted" style="align-self:center"></span></div>
+      <div class="wrap"><table style="margin-top:12px"><tbody id="checks"></tbody></table></div>
+    </div>
+  </section>
+</main>
+<script>
+var FIELDS = [{n:'department',t:'text'},{n:'position',t:'text'},{n:'salary',t:'double'}];
+var LABELS = ['Employee ID','Name','Department','Position','Salary'];
+var editing = false;
+function $(id){ return document.getElementById(id); }
+
+function api(path, params) {
+  return fetch(path, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams(params || {}).toString()
+  }).then(function (r) { return r.text(); }).then(function (t) {
+    var lines = t.split('\n');
+    return {status: lines[0], message: lines[1] || '',
+            data: lines.slice(2).filter(function (l) { return l.trim() !== ''; })};
+  }).catch(function () {
+    return {status: 'ERR', message: 'Cannot reach the Java server. Is the program still running?', data: []};
+  });
+}
+
+function banner(res) {
+  var b = $('banner');
+  b.className = res.status === 'OK' ? 'ok' : 'err';
+  b.textContent = res.message;
+}
+
+function cell(tr, text, cls) {
+  var td = document.createElement('td');
+  td.textContent = text;
+  if (cls) td.className = cls;
+  tr.appendChild(td);
+  return td;
+}
+
+function loadList(highlight) {
+  return api('/api/list').then(function (res) {
+    var body = $('rows');
+    body.innerHTML = '';
+    res.data.forEach(function (line) {
+      var f = line.split('|');
+      var tr = document.createElement('tr');
+      if (f[0] === highlight) tr.className = 'hl';
+      cell(tr, f[0]); cell(tr, f[1]);
+      FIELDS.forEach(function (fd, i) { cell(tr, f[i + 2], fd.t === 'text' ? '' : 'num'); });
+      var td = document.createElement('td');
+      var e = document.createElement('button');
+      e.textContent = 'Edit'; e.className = 'alt small';
+      e.onclick = function () { startEdit(f); };
+      var d = document.createElement('button');
+      d.textContent = 'Delete'; d.className = 'danger small'; d.style.marginLeft = '4px';
+      d.onclick = function () { del(f[0], f[1]); };
+      td.appendChild(e); td.appendChild(d); tr.appendChild(td);
+      body.appendChild(tr);
+    });
+    $('count').textContent = '(' + res.data.length + ')';
+    if (res.data.length === 0) {
+      var tr = document.createElement('tr');
+      var td = cell(tr, 'No Employee records found.'); td.colSpan = FIELDS.length + 3;
+      body.appendChild(tr);
+    }
+  });
+}
+
+function fields() {
+  var o = {id: $('f_id').value, name: $('f_name').value};
+  FIELDS.forEach(function (fd) { o[fd.n] = $('f_' + fd.n).value; });
+  return o;
+}
+
+function save() {
+  api(editing ? '/api/update' : '/api/add', fields()).then(function (res) {
+    banner(res);
+    if (res.status === 'OK') cancelEdit();
+    loadList();
+  });
+}
+
+function startEdit(f) {
+  editing = true;
+  $('formTitle').textContent = 'Update Employee';
+  $('saveBtn').textContent = 'Update Employee';
+  $('cancelBtn').style.display = '';
+  $('f_id').value = f[0]; $('f_id').readOnly = true;
+  $('f_name').value = f[1];
+  FIELDS.forEach(function (fd, i) { $('f_' + fd.n).value = f[i + 2]; });
+  window.scrollTo(0, 0);
+}
+
+function cancelEdit() {
+  editing = false;
+  $('formTitle').textContent = 'Add Employee';
+  $('saveBtn').textContent = 'Add Employee';
+  $('cancelBtn').style.display = 'none';
+  $('f_id').readOnly = false;
+  $('f_id').value = ''; $('f_name').value = '';
+  FIELDS.forEach(function (fd) { $('f_' + fd.n).value = ''; });
+}
+
+function del(id, name) {
+  if (!confirm('Delete ' + name + ' (' + id + ')?')) return;
+  api('/api/delete', {id: id}).then(function (res) { banner(res); loadList(); });
+}
+
+function search() {
+  var id = $('s_id').value.trim();
+  api('/api/search', {id: id}).then(function (res) {
+    var box = $('found');
+    box.textContent = '';
+    if (res.status === 'OK' && res.data.length) {
+      var f = res.data[0].split('|');
+      var parts = LABELS.map(function (l, i) { return l + ': ' + f[i]; });
+      parts.push('Role: ' + f[LABELS.length]);
+      box.textContent = parts.join(' | ');
+      $('banner').className = '';
+      loadList(f[0]);
+    } else {
+      banner(res);
+    }
+  });
+}
+
+function sortNow() {
+  api('/api/sort', {algo: $('algo').value, by: $('by').value}).then(function (res) {
+    banner(res);
+    loadList();
+  });
+}
+
+function tool(name) {
+  if (name === 'clear' && !confirm('Remove every record?')) return;
+  api('/api/' + name).then(function (res) { banner(res); loadList(); });
+}
+
+function runCheck() {
+  $('summary').textContent = 'Running...';
+  api('/api/check').then(function (res) {
+    var body = $('checks');
+    body.innerHTML = '';
+    var pass = 0;
+    res.data.forEach(function (line) {
+      var f = line.split('|');
+      if (f[1] === 'PASS') pass++;
+      var tr = document.createElement('tr');
+      cell(tr, f[0]);
+      var td = document.createElement('td');
+      var b = document.createElement('span');
+      b.className = 'badge ' + f[1]; b.textContent = f[1];
+      td.appendChild(b); tr.appendChild(td);
+      cell(tr, f[2]);
+      body.appendChild(tr);
+    });
+    $('summary').textContent = res.status === 'OK' ? pass + ' of ' + res.data.length + ' checks passed' : res.message;
+    loadList();
+  });
+}
+
+loadList();
+</script>
+</body>
+</html>
