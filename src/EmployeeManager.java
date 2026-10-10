@@ -1,12 +1,9 @@
+
 import java.util.ArrayList;
 
 /**
  * EmployeeManager - owns the ArrayList<Employee> and performs
  * add / search / update / delete / sort operations for the web page.
- *
- * Some methods are finished for you. Look for the comments that say
- *     // TODO: STUDENT TASK
- * to find the parts YOU must write.
  */
 public class EmployeeManager {
 
@@ -51,12 +48,13 @@ public class EmployeeManager {
     }
 
     // ------------------------------------------------------------
-    // ADD  (partly done)
+    // ADD
     // ------------------------------------------------------------
     public boolean addEmployee(Employee record) {
-        // TODO: STUDENT TASK
-        // Before adding, check whether the ID already exists by calling
-        // findIndexById(...). If it exists, return false (do NOT add).
+        // If the ID is already in the list, findIndexById gives a number that is NOT -1.
+        if (findIndexById(record.getEmployeeId()) != -1) {
+            return false; // duplicate ID -> do not add
+        }
 
         records.add(record);
         return true;
@@ -67,12 +65,13 @@ public class EmployeeManager {
     // ------------------------------------------------------------
     // Returns the index of the record with this ID, or -1 if not found.
     public int findIndexById(String id) {
-        // TODO: STUDENT TASK
-        // Implement LINEAR SEARCH manually using a loop.
-        // Check each record one by one from index 0 to the end.
-        // Do NOT use indexOf(), contains(), or any other built-in search.
-
-        return -1; // placeholder - replace with your own logic
+        // Check each record one by one, from index 0 to the end.
+        for (int i = 0; i < records.size(); i++) {
+            if (records.get(i).getEmployeeId().equals(id)) {
+                return i; // found it, stop here
+            }
+        }
+        return -1; // went through everything and never found it
     }
 
     // Returns the Employee object, or null if not found. (finished)
@@ -85,7 +84,7 @@ public class EmployeeManager {
     }
 
     // ------------------------------------------------------------
-    // UPDATE  (partly done)
+    // UPDATE
     // ------------------------------------------------------------
     public boolean updateEmployee(String id, String name, String department, String position, double salary) {
         Employee r = searchById(id);
@@ -93,9 +92,11 @@ public class EmployeeManager {
             return false;
         }
 
-        // TODO: STUDENT TASK
-        // Use the setter methods of the Employee object to change
-        // every field (the ID must NOT change).
+        // Change every field using the setters (the ID is NOT changed).
+        r.setName(name);             // setName is inherited from Person
+        r.setDepartment(department);
+        r.setPosition(position);
+        r.setSalary(salary);
 
         return true;
     }
@@ -104,12 +105,12 @@ public class EmployeeManager {
     // DELETE
     // ------------------------------------------------------------
     public boolean deleteEmployee(String id) {
-        // TODO: STUDENT TASK
-        // 1. Find the index of the record using findIndexById(id).
-        // 2. If it is -1, return false.
-        // 3. Otherwise remove that record from the ArrayList and return true.
-
-        return false; // placeholder - replace with your own logic
+        int index = findIndexById(id);   // 1. find where it is
+        if (index == -1) {               // 2. not found -> nothing to delete
+            return false;
+        }
+        records.remove(index);           // 3. remove that position
+        return true;
     }
 
     // ------------------------------------------------------------
